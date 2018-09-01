@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.UserMapper">
+    <resultMap id="player" type="com.up72.game.dto.resp.Player">
+        <result property="id" column="ID" />
+        <result property="userId" column="USER_ID" />
+        <result property="openId" column="OPEN_ID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="userImg" column="USER_IMG" />
+        <result property="gender" column="GENDER" />
+        <result property="money" column="MONEY" />
+        <result property="userAgree" column="USER_AGREE" />
+    </resultMap>
+
+    <insert id="insert">
+        INSERT INTO GAME_USER(
+            USER_ID,OPEN_ID,USER_NAME,USER_IMG,GENDER,
+            TOTAL_GAME_NUM,MONEY,USER_AGREE,LOGIN_STATUS,
+            SIGN_UP_TIME,LAST_LOGIN_TIME,CID
+        )
+        VALUES (
+           #{userId},#{openId},#{userName},#{userImg},#{gender},
+           #{totalGameNum},#{money},#{userAgree},#{loginStatus},
+           #{signUpTime},#{lastLoginTime},#{cId}
+        )
+    </insert>
+
+
+    <update id="updateMoney">
+        update GAME_USER set MONEY=#{money} where USER_ID = #{userId} and CID=#{cid}
+    </update>
+	
+    
+	<select id="findByOpenId" resultMap="player" parameterType="map">
+		SELECT 
+		USER_ID AS userId,
+		OPEN_ID AS openId,
+		USER_NAME AS userName,
+		USER_IMG AS userImg,
+		GENDER AS gender,
+		MONEY AS money,
+		USER_AGREE AS userAgree
+		FROM `GAME_USER` WHERE OPEN_ID = #{openId} and CID = #{cid}
+	</select>
+    
+    
+	<select id="isExistUserId" resultType="java.lang.Integer" resultMap="player">
+        SELECT ID FROM GAME_USER WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="findPlayerRecordByUserId" resultType="com.up72.game.dto.resp.PlayerRecord">
+        SELECT
+        pr.ROOM_ID as roomId,
+        pr.START_TIME as startTime,
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.FIRST_USER_ID) as firstUserName,
+        pr.FIRST_USER_ID as firstUserId,
+        pr.FIRST_USER_MONEY_RECORD as firstUserMoneyRecord,
+        pr.FIRST_USER_MONEY_REMAIN as firstUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.SECOND_USER_ID) as secondUserName,
+        pr.SECOND_USER_ID as secondUserId,
+        pr.SECOND_USER_MONEY_RECORD as secondUserMoneyRecord,
+        pr.SECOND_USER_MONEY_REMAIN as secondUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.THIRD_USER_ID) as thirdUserName,
+        pr.THIRD_USER_ID as thirdUserId,
+        pr.THIRD_USER_MONEY_RECORD as thirdUserMoneyRecord,
+        pr.THIRD_USER_MONEY_REMAIN as thirdUserMoneyRemain,
+
+
+        from GAME_PLAY_RECORD pr
+        WHERE
+        pr.FIRST_USER_ID =#{userId} OR
+        pr.SECOND_USER_ID = #{userId} OR
+        pr.THIRD_USER_ID = #{userId}
+        ORDER BY pr.START_TIME DESC
+        limit #{start},#{limit}
+    </select>
+
+
+    <insert id="userFeedback">
+        INSERT INTO GAME_FEEDBACK(USER_ID,CONTENT,TEL,CREATE_TIME)
+        VALUES (#{userId},#{content},#{tel},#{createTime})
+    </insert>
+
+
+    <update id="updateUserAgree">
+        update `GAME_USER` set USER_AGREE = 1 WHERE  USER_ID=#{userId}
+    </update>
+
+    <select id="getNotice" resultType="java.lang.String">
+        select CONTENT from  GAME_NOTICE where TYPE = 1 and CID=#{cid}
+    </select>
+    
+    <select id="getMoneyInit" resultType="java.lang.Integer">
+    	select MONEY_INIT from GAME_NOTICE where TYPE = 1 and CID = #{cid}
+    </select>
+
+    <select id="getSystemMessage" resultType="com.up72.game.model.SystemMessage">
+        select
+        CREATE_TIME as createTime,
+        CONTENT as content,
+        USER_ID as userId
+        from GAME_SYSTEM_MESSAGE
+        limit #{start},#{limit}
+    </select>
+    
+    <select id="getConectUs" resultType="java.lang.String">
+        select CONTENT_US
+        from GAME_SYSTEM_MESSAGE where STATE = 1
+    </select>
+
+    <insert id="insertPlayRecord">
+        insert into GAME_PLAY_RECORD(
+        ROOM_ID,START_TIME,END_TIME,
+        FIRST_USER_ID,FIRST_USER_MONEY_RECORD,FIRST_USER_MONEY_REMAIN,
+        SECOND_USER_ID,SECOND_USER_MONEY_RECORD,SECOND_USER_MONEY_REMAIN,
+        THIRD_USER_ID,THIRD_USER_MONEY_RECORD,THIRD_USER_MONEY_REMAIN
+        )
+        values(
+        #{roomId},
+        #{createTime},
+        #{endTime},
+
+        #{firstUserId},
+        #{firstUserMoneyRecord},
+        #{firstUserMoneyRemain},
+
+        #{secondUserId},
+        #{secondUserMoneyRecord},
+        #{secondUserMoneyRemain},
+
+        #{thirdUserId},
+        #{thirdUserMoneyRecord},
+        #{thirdUserMoneyRemain}
+
+        )
+
+    </insert>
+    
+    <insert id="insertPlayerMoneyRecord">
+    	insert into gm_player_consumerecord(uId,money,type,createTime)
+    	values(#{userId},#{money},#{type},#{createTime})
+    </insert>
+    
+    <select id="getUserMoneyByUserId" resultType="java.lang.Integer" parameterType="map">
+    	select MONEY from GAME_USER where USER_ID=#{userId} and CID=#{cid}
+    </select>
+	
+	<update id="updateIpAndLastTime" parameterType="map">
+		update GAME_USER set LAST_LOGIN_TIME = #{lastLoginTime},IP = #{ip} where OPEN_ID = #{openId}
+	</update>
+	
+	 <select id="findIpByUserId" resultType="java.lang.String" parameterType="map">
+    	select IP from GAME_USER where USER_ID=#{userId} 
+    </select>
+    
+    <select id="findTotalGameNum" parameterType="map" resultType="java.lang.Integer">
+    	select count(ID) from GAME_ROOM where (USER_ID1 = #{userId} or USER_ID2 = #{userId} or
+    	USER_ID3 = #{userId} ) and CIRCLE_NUM = XIAO_JU
+    </select>
+</mapper>

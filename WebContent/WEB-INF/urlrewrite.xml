@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>  
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 4.0//EN"  "http://tuckey.org/res/dtds/urlrewrite4.0.dtd">  
+
+
+<urlrewrite>
+	<!--  活动开放展示  只能浏览不可以做任何操作  -->
+	<rule>  
+		<note> 开放页面，任何人都是访问 </note>
+		<from>^/open/us.(\w+).(\w+).html$</from>
+		<to>/$1/open/$2.do</to>
+	</rule>
+	
+	<rule>  
+		<note> 权限页面，登陆后可以看到 </note>
+		<from>^/ams/su.(\w+).html$</from>
+		<to>/main/main.do</to>
+	</rule>
+	
+	<!-- 去掉url上的 jsessionid-->
+    <outbound-rule encodefirst="true">
+        <from>^(.*);jsessionid=.*$</from>
+        <to>$1</to>
+    </outbound-rule>
+    <outbound-rule match-type="wildcard">
+        <from>*;jsessionid=*</from>
+        <to>$1</to>
+    </outbound-rule>
+
+</urlrewrite> 

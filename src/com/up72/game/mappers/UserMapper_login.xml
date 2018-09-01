@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.UserMapper_login">
+    <resultMap id="player" type="com.up72.game.dto.resp.Player">
+        <result property="id" column="ID" />
+        <result property="userId" column="USER_ID" />
+        <result property="openId" column="OPEN_ID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="userImg" column="USER_IMG" />
+        <result property="gender" column="GENDER" />
+        <result property="money" column="MONEY" />
+        <result property="userAgree" column="USER_AGREE" />
+    </resultMap>
+
+    <select id="getUserInfoByOpenId" resultType="com.up72.game.dto.resp.Player">
+        select
+        openId,
+        headimgurl AS userImg,
+        nickname AS userName,
+        sex AS  gender
+        from ah_weixin_u_info
+        where openId = #{openId}
+    </select>
+
+</mapper>
